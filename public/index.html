@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>真心话大冒险</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="container" id="app">
+    <div class="logo">
+      <h1>🔥 真心话<br>大冒险</h1>
+      <p class="subtitle">准备好了吗？气氛要升温了</p>
+    </div>
+
+    <div class="card" id="homePage">
+      <div class="tab-bar">
+        <button class="tab active" onclick="showTab('create')">创建房间</button>
+        <button class="tab" onclick="showTab('join')">加入房间</button>
+      </div>
+
+      <div id="createTab" class="tab-content active">
+        <div class="form-group">
+          <label>你的名字</label>
+          <input type="text" id="createName" placeholder="输入昵称..." maxlength="10">
+        </div>
+        <div class="form-group">
+          <label>游戏模式</label>
+          <div class="mode-select">
+            <button class="mode-btn active" data-mode="multi" onclick="selectMode(this, 'multi')">
+              👥 多人模式<br><small>3-20人一起嗨</small>
+            </button>
+            <button class="mode-btn" data-mode="dual" onclick="selectMode(this, 'dual')">
+              💑 双人模式<br><small>两个人私密玩</small>
+            </button>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="createRoom()">🚀 创建房间</button>
+      </div>
+
+      <div id="joinTab" class="tab-content">
+        <div class="form-group">
+          <label>你的名字</label>
+          <input type="text" id="joinName" placeholder="输入昵称..." maxlength="10">
+        </div>
+        <div class="form-group">
+          <label>房间码</label>
+          <input type="text" id="roomCode" placeholder="输入6位房间码" maxlength="6" style="text-transform:uppercase;letter-spacing:4px;font-size:1.3em;text-align:center">
+        </div>
+        <button class="btn btn-primary" onclick="joinRoom()">🎮 加入房间</button>
+      </div>
+    </div>
+
+    <div id="loadingOverlay" class="overlay hidden">
+      <div class="spinner"></div>
+      <p>连接中...</p>
+    </div>
+
+    <div id="waitingRoom" class="card hidden">
+      <h2>🎯 等待中</h2>
+      <div class="room-code-box">
+        <span>房间码</span>
+        <div class="code-display" id="displayCode">------</div>
+        <small>分享给朋友让他们加入</small>
+      </div>
+      <div class="players-list">
+        <h3>玩家列表 (<span id="playerCount">0</span>人)</h3>
+        <div id="playersContainer"></div>
+      </div>
+      <div class="host-controls hidden" id="hostControls">
+        <div class="form-group">
+          <label>选人方式</label>
+          <div class="mode-select">
+            <button class="mode-btn active" data-smode="wheel" onclick="selectSmode(this, 'wheel')">🎰 转盘</button>
+            <button class="mode-btn" data-smode="dice" onclick="selectSmode(this, 'dice')">🎲 骰子</button>
+            <button class="mode-btn" data-smode="bottle" onclick="selectSmode(this, 'bottle')">🍾 转瓶</button>
+            <button class="mode-btn" data-smode="turn" onclick="selectSmode(this, 'turn')">🔄 轮流</button>
+          </div>
+        </div>
+        <button class="btn btn-primary btn-large" onclick="startGame()">🎮 开始游戏</button>
+      </div>
+      <div class="host-controls" id="nonHostMsg">
+        <p class="muted">等待房主开始游戏...</p>
+      </div>
+    </div>
+
+    <div id="gameRoom" class="card hidden">
+      <div class="game-header">
+        <span class="room-badge">房间 <span id="gameCode">---</span></span>
+        <span class="score-badge" id="myScoreBadge">🏆 0分</span>
+      </div>
+
+      <div id="playerSelectPhase">
+        <h2 id="phaseTitle">🎰 选人中...</h2>
+        <div id="selectionAnimation" class="selection-animation">
+          <div id="wheelContainer" class="wheel-container hidden">
+            <div class="wheel" id="wheel">
+              <div class="wheel-inner"></div>
+              <div class="wheel-pointer">▼</div>
+            </div>
+          </div>
+          <div id="diceContainer" class="dice-container hidden">
+            <div class="dice-display" id="diceDisplay">🎲</div>
+            <div id="diceResults"></div>
+          </div>
+          <div id="bottleContainer" class="bottle-container hidden">
+            <div class="bottle">🍾</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="gamePlayPhase" class="hidden">
+        <div class="current-player-card" id="currentPlayerCard">
+          <div class="player-avatar" id="currentPlayerAvatar">😎</div>
+          <div class="current-player-name" id="currentPlayerName">玩家</div>
+          <div class="turn-label">轮到你了！</div>
+        </div>
+
+        <div class="choice-buttons" id="choiceButtons">
+          <button class="btn btn-truth" onclick="chooseTruth()">
+            <span class="btn-icon">💔</span>
+            <span class="btn-label">真心话</span>
+          </button>
+          <button class="btn btn-dare" onclick="chooseDare()">
+            <span class="btn-icon">🔥</span>
+            <span class="btn-label">大冒险</span>
+          </button>
+        </div>
+
+        <div id="questionDisplay" class="question-display hidden">
+          <div class="question-type-badge" id="qTypeBadge">💔 真心话</div>
+          <div class="question-text" id="questionText">问题加载中...</div>
+          <button class="btn btn-secondary" onclick="confirmDone()">✅ 完成了</button>
+        </div>
+
+        <div id="waitingMsg" class="hidden">
+          <p class="muted">等待当前玩家作答...</p>
+        </div>
+      </div>
+
+      <div class="game-players-bar">
+        <div id="gamePlayersContainer"></div>
+      </div>
+
+      <div class="host-only hidden" id="hostNextBtn">
+        <button class="btn btn-primary" onclick="nextRound()">👉 下一轮</button>
+      </div>
+    </div>
+
+    <div id="errorToast" class="toast hidden"></div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/socket.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+</html>
