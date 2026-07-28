@@ -67,7 +67,7 @@
         <h3>玩家列表 (<span id="playerCount">0</span>人)</h3>
         <div id="playersContainer"></div>
       </div>
-      <div class="host-controls hidden" id="hostControls">
+      <div class="host-controls" id="hostControls">
         <div class="form-group">
           <label>选人方式</label>
           <div class="mode-select">
@@ -78,8 +78,9 @@
           </div>
         </div>
         <button class="btn btn-primary btn-large" onclick="startGame()">🎮 开始游戏</button>
+        <button class="btn btn-secondary hidden" id="playAgainBtn" onclick="startGame()">🔄 再来一局</button>
       </div>
-      <div class="host-controls" id="nonHostMsg">
+      <div id="nonHostMsg">
         <p class="muted">等待房主开始游戏...</p>
       </div>
     </div>
@@ -94,19 +95,32 @@
         <h2 id="phaseTitle">🎰 选人中...</h2>
         <div id="selectionAnimation" class="selection-animation">
           <div id="wheelContainer" class="wheel-container hidden">
-            <div class="wheel" id="wheel">
-              <div class="wheel-inner"></div>
-              <div class="wheel-pointer">▼</div>
+            <div class="wheel-pointer">▼</div>
+            <div class="wheel" id="wheelEl">
+              <div class="wheel-inner" id="wheelInner"></div>
+              <div class="wheel-names" id="wheelNames"></div>
             </div>
           </div>
           <div id="diceContainer" class="dice-container hidden">
+            <div id="diceDuelPlayers" class="duel-players"></div>
             <div class="dice-display" id="diceDisplay">🎲</div>
-            <div id="diceResults"></div>
+            <div id="diceResults" class="dice-results"></div>
+            <div id="diceDuelMessages" class="duel-messages"></div>
+            <button id="diceRollBtn" class="btn btn-primary hidden" onclick="rollMyDice()">🎲 掷骰子！</button>
+            <p id="diceWaitMsg" class="muted hidden">⏳ 等待对手掷骰子...</p>
           </div>
           <div id="bottleContainer" class="bottle-container hidden">
             <div class="bottle">🍾</div>
           </div>
         </div>
+      </div>
+
+      <div class="select-result hidden" id="selectResult">
+        <div class="selected-display">
+          <span class="selected-avatar" id="selectedAvatar">😎</span>
+          <span class="selected-name" id="selectedName"></span>
+        </div>
+        <div class="selected-label">🎯 被选中了！</div>
       </div>
 
       <div id="gamePlayPhase" class="hidden">
@@ -127,23 +141,41 @@
           </button>
         </div>
 
-        <div id="questionDisplay" class="question-display hidden">
-          <div class="question-type-badge" id="qTypeBadge">💔 真心话</div>
-          <div class="question-text" id="questionText">问题加载中...</div>
-          <button class="btn btn-secondary" onclick="confirmDone()">✅ 完成了</button>
-        </div>
+          <div id="questionDisplay" class="question-display hidden">
+            <div class="question-type-badge" id="qTypeBadge">💔 真心话</div>
+            <div class="question-text" id="questionText">问题加载中...</div>
+            <div id="answerArea" class="answer-area hidden">
+              <input type="text" id="answerInput" placeholder="输入你的回答..." maxlength="200" onkeydown="if(event.key==='Enter')submitAnswer()">
+              <button class="btn btn-secondary" onclick="submitAnswer()">📤 提交回答</button>
+            </div>
+            <div id="answerDisplay" class="answer-display hidden"></div>
+            <p id="waitingApproval" class="muted hidden">⏳ 等待其他人接受你的回答...</p>
+            <button class="btn btn-primary hidden" id="approveBtn" onclick="approveAnswer()">✔️ 接受回答</button>
+            <button class="btn btn-secondary hidden" id="doneBtn" onclick="confirmDone()">✅ 完成了</button>
+          </div>
 
         <div id="waitingMsg" class="hidden">
           <p class="muted">等待当前玩家作答...</p>
         </div>
       </div>
 
+      <div class="host-only hidden" id="hostNextBtn">
+        <button class="btn btn-primary" onclick="nextRound()">👉 下一轮</button>
+      </div>
+
       <div class="game-players-bar">
         <div id="gamePlayersContainer"></div>
       </div>
+    </div>
 
-      <div class="host-only hidden" id="hostNextBtn">
-        <button class="btn btn-primary" onclick="nextRound()">👉 下一轮</button>
+    <div class="card chat-card hidden" id="chatCard">
+      <div class="chat-header">
+        <span>💬 聊天室</span>
+      </div>
+      <div class="chat-messages" id="chatMessages"></div>
+      <div class="chat-input-row">
+        <input type="text" id="chatInput" placeholder="说点什么..." maxlength="200" onkeydown="if(event.key==='Enter')sendChat()">
+        <button class="btn-chat-send" onclick="sendChat()">发送</button>
       </div>
     </div>
 
