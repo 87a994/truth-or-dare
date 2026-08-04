@@ -142,6 +142,8 @@ io.on('connection', (socket) => {
     if (room.players.length < 1) return socket.emit('error', '至少需要1名玩家');
 
     room.gameState = 'playing';
+    room.usedTruths = [];
+    room.usedDares = [];
     io.to(code).emit('gameStarted', { method: room.selectionMode, players: room.players.map(p => ({ id: p.id, name: p.name })) });
     setTimeout(() => selectPlayerForRoom(room, code), 1500);
   });
@@ -149,14 +151,30 @@ io.on('connection', (socket) => {
   socket.on('chooseTruth', ({ code }) => {
     const room = rooms[code];
     if (!room || room.currentPlayerId !== socket.id) return;
-    const question = truths[Math.floor(Math.random() * truths.length)];
+    const available = truths.filter((_, i) => !room.usedTruths.includes(i));
+    if (available.length === 0) {
+      room.usedTruths = [];
+      return io.to(code).emit('showTruth', { question: '题库已用完，本轮结束！', playerId: socket.id, playerName: room.players.find(p => p.id === socket.id)?.name });
+    }
+    const idx = Math.floor(Math.random() * available.length);
+    const question = available[idx];
+    const originalIdx = truths.indexOf(question);
+    room.usedTruths.push(originalIdx);
     io.to(code).emit('showTruth', { question, playerId: socket.id, playerName: room.players.find(p => p.id === socket.id)?.name });
   });
 
   socket.on('chooseDare', ({ code }) => {
     const room = rooms[code];
     if (!room || room.currentPlayerId !== socket.id) return;
-    const challenge = dares[Math.floor(Math.random() * dares.length)];
+    const available = dares.filter((_, i) => !room.usedDares.includes(i));
+    if (available.length === 0) {
+      room.usedDares = [];
+      return io.to(code).emit('showDare', { challenge: '题库已用完，本轮结束！', playerId: socket.id, playerName: room.players.find(p => p.id === socket.id)?.name });
+    }
+    const idx = Math.floor(Math.random() * available.length);
+    const challenge = available[idx];
+    const originalIdx = dares.indexOf(challenge);
+    room.usedDares.push(originalIdx);
     io.to(code).emit('showDare', { challenge, playerId: socket.id, playerName: room.players.find(p => p.id === socket.id)?.name });
   });
 
